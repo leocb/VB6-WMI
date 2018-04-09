@@ -1,0 +1,505 @@
+Dim step As Integer
+Dim SelectedTab As Integer
+Dim procInstruct(18) As Integer
+Dim MemTotal As Integer
+
+Private Declare Function IsProcessorFeaturePresent Lib "kernel32" (ByVal ProcessorFeature As Long) As Long
+
+Private Sub Form_Load()
+SelectedTab = 1
+ContainerInit.Top = 0
+ContainerInit.Left = 0
+End Sub
+
+Sub CarregaProcessador()
+
+On Error Resume Next
+
+Dim WMI
+Dim wmiWin32Objects
+Dim wmiWin32Object
+Dim ComputerName As String
+
+Set WMI = GetObject("WinMgmts://./root/cimv2")
+
+Set wmiWin32Objects = WMI.ExecQuery("SELECT * FROM Win32_Processor", , 48)
+
+For Each wmiWin32Object In wmiWin32Objects
+With wmiWin32Object
+ProcInfo(0).Text = .Name
+ProcInfo(1).Text = .Description
+ProcInfo(2).Text = .DataWidth & " bits"
+ProcInfo(3).Text = .NumberOfCores & "/" & .NumberOfLogicalProcessors
+ProcInfo(5).Text = .MaxClockSpeed & " MHz"
+If .ExtClock > 0 Then ProcInfo(7).Text = .ExtClock & " MHz"
+
+
+'Arquitetura
+Select Case .Architecture
+Case 0
+ProcInfo(4).Text = "x86"
+Case 1
+ProcInfo(4).Text = "MIPS"
+Case 2
+ProcInfo(4).Text = "Alpha"
+Case 3
+ProcInfo(4).Text = "PowerPC"
+Case 5
+ProcInfo(4).Text = "ARM"
+Case 6
+ProcInfo(4).Text = "Itanium"
+Case 9
+ProcInfo(4).Text = "x64"
+End Select
+
+End With
+'Instru??es do processador
+'Salva os mesmo valores na array, que serve para impedir a mudan?a no estado do botao
+If IsProcessorFeaturePresent(3) = 0 Then procInstruct(0) = 0 Else procInstruct(0) = 1
+If IsProcessorFeaturePresent(6) = 0 Then procInstruct(1) = 0 Else procInstruct(1) = 1
+If IsProcessorFeaturePresent(10) = 0 Then procInstruct(2) = 0 Else procInstruct(2) = 1
+If IsProcessorFeaturePresent(13) = 0 Then procInstruct(3) = 0 Else procInstruct(3) = 1
+If IsProcessorFeaturePresent(12) = 0 Then procInstruct(4) = 0 Else procInstruct(4) = 1
+If IsProcessorFeaturePresent(9) = 0 Then procInstruct(5) = 0 Else procInstruct(5) = 1
+If IsProcessorFeaturePresent(8) = 0 Then procInstruct(6) = 0 Else procInstruct(6) = 1
+If IsProcessorFeaturePresent(20) = 0 Then procInstruct(7) = 0 Else procInstruct(7) = 1
+If IsProcessorFeaturePresent(16) = 0 Then procInstruct(8) = 0 Else procInstruct(8) = 1
+If IsProcessorFeaturePresent(7) = 0 Then procInstruct(9) = 0 Else procInstruct(9) = 1
+If IsProcessorFeaturePresent(21) = 0 Then procInstruct(10) = 0 Else procInstruct(10) = 1
+If IsProcessorFeaturePresent(17) = 0 Then procInstruct(11) = 0 Else procInstruct(11) = 1
+If IsProcessorFeaturePresent(2) = 0 Then procInstruct(12) = 0 Else procInstruct(12) = 1
+If IsProcessorFeaturePresent(15) = 0 Then procInstruct(13) = 0 Else procInstruct(13) = 1
+If IsProcessorFeaturePresent(14) = 0 Then procInstruct(14) = 0 Else procInstruct(14) = 1
+If IsProcessorFeaturePresent(2) = 0 Then procInstruct(15) = 0 Else procInstruct(15) = 1
+If IsProcessorFeaturePresent(14) = 0 And IsProcessorFeaturePresent(15) = 0 Then procInstruct(16) = 0 Else procInstruct(16) = 1
+If IsProcessorFeaturePresent(22) = 0 Then procInstruct(17) = 0 Else procInstruct(17) = 1
+'Checkboxes
+
+If IsProcessorFeaturePresent(3) = 0 Then ProcCheck(0).Value = 0 Else ProcCheck(0).Value = 1
+If IsProcessorFeaturePresent(6) = 0 Then ProcCheck(1).Value = 0 Else ProcCheck(1).Value = 1
+If IsProcessorFeaturePresent(10) = 0 Then ProcCheck(2).Value = 0 Else ProcCheck(2).Value = 1
+If IsProcessorFeaturePresent(13) = 0 Then ProcCheck(3).Value = 0 Else ProcCheck(3).Value = 1
+If IsProcessorFeaturePresent(12) = 0 Then ProcCheck(4).Value = 0 Else ProcCheck(4).Value = 1
+If IsProcessorFeaturePresent(9) = 0 Then ProcCheck(5).Value = 0 Else ProcCheck(5).Value = 1
+If IsProcessorFeaturePresent(8) = 0 Then ProcCheck(6).Value = 0 Else ProcCheck(6).Value = 1
+If IsProcessorFeaturePresent(20) = 0 Then ProcCheck(7).Value = 0 Else ProcCheck(7).Value = 1
+If IsProcessorFeaturePresent(16) = 0 Then ProcCheck(8).Value = 0 Else ProcCheck(8).Value = 1
+If IsProcessorFeaturePresent(7) = 0 Then ProcCheck(9).Value = 0 Else ProcCheck(9).Value = 1
+If IsProcessorFeaturePresent(21) = 0 Then ProcCheck(10).Value = 0 Else ProcCheck(10).Value = 1
+If IsProcessorFeaturePresent(17) = 0 Then ProcCheck(11).Value = 0 Else ProcCheck(11).Value = 1
+If IsProcessorFeaturePresent(2) = 0 Then ProcCheck(12).Value = 0 Else ProcCheck(12).Value = 1
+If IsProcessorFeaturePresent(15) = 0 Then ProcCheck(13).Value = 0 Else ProcCheck(13).Value = 1
+If IsProcessorFeaturePresent(14) = 0 Then ProcCheck(14).Value = 0 Else ProcCheck(14).Value = 1
+If IsProcessorFeaturePresent(2) = 0 Then ProcCheck(15).Value = 0 Else ProcCheck(15).Value = 1
+If IsProcessorFeaturePresent(14) = 0 And IsProcessorFeaturePresent(15) = 0 Then ProcCheck(16).Value = 0 Else ProcCheck(16).Value = 1
+If IsProcessorFeaturePresent(22) = 0 Then ProcCheck(17).Value = 0 Else ProcCheck(17).Value = 1
+
+Next
+
+End Sub
+
+
+Sub CarregaCache()
+On Error Resume Next
+
+Dim WMI
+Dim wmiWin32Objects
+Dim wmiWin32Object
+Dim ComputerName As String
+
+Set WMI = GetObject("WinMgmts://./root/cimv2")
+
+Set wmiWin32Objects = WMI.ExecQuery("SELECT * FROM Win32_CacheMemory", , 48)
+For Each wmiWin32Object In wmiWin32Objects
+With wmiWin32Object
+
+Dim Associativity As String
+Select Case .Associativity
+    Case 1
+    Associativity = "Outro"
+    Case 2
+    Associativity = "Desconhecido"
+    Case 3
+    Associativity = "Mapeamento Direto"
+    Case 4
+    Associativity = "2-way"
+    Case 5
+    Associativity = "4-way"
+    Case 6
+    Associativity = "Total"
+    Case 7
+    Associativity = "8-way"
+    Case 8
+    Associativity = "16-way"
+End Select
+
+Select Case .Purpose
+    Case "L1 Cache"
+    If .CacheType = 4 Then
+        ProcInfo(8).Text = .MaxCacheSize & " KBytes"
+        ProcInfo(12).Text = Associativity
+    Else
+        ProcInfo(9).Text = .MaxCacheSize & " KBytes"
+        ProcInfo(13).Text = Associativity
+    End If
+    
+    Case "L2 Cache"
+        ProcInfo(10).Text = .MaxCacheSize & " KBytes"
+        ProcInfo(14).Text = Associativity
+
+    Case "L3 Cache"
+        ProcInfo(11).Text = .MaxCacheSize & " KBytes"
+        ProcInfo(15).Text = Associativity
+End Select
+
+End With
+Next
+End Sub
+
+Private Sub ProcCheck_Click(Index As Integer)
+    ProcCheck(Index).Value = procInstruct(Index)
+End Sub
+
+
+Sub CarregaMP()
+On Error Resume Next
+
+Dim WMI
+Dim wmiWin32Objects
+Dim wmiWin32Object
+Dim ComputerName As String
+
+'geral
+Set WMI = GetObject("WinMgmts://./root/cimv2")
+Set wmiWin32Objects = WMI.ExecQuery("SELECT TotalPhysicalMemory FROM Win32_ComputerSystem")
+
+For Each wmiWin32Object In wmiWin32Objects
+With wmiWin32Object
+
+memInfoGeral(0).Text = Format(.TotalPhysicalMemory / 1024 / 1024, "######") & " Mbytes"
+MemTotal = .TotalPhysicalMemory / 1024 / 1024
+
+End With
+Next
+
+'SLOTS
+Dim i As Integer
+Dim tipo As String
+i = 0
+Set WMI = GetObject("WinMgmts://./root/cimv2")
+Set wmiWin32Objects = WMI.ExecQuery("SELECT * FROM Win32_PhysicalMemory")
+
+For Each wmiWin32Object In wmiWin32Objects
+With wmiWin32Object
+
+Select Case .MemoryType
+Case 0
+tipo = "Desconhecido"
+Case 1
+tipo = "Outro"
+Case 2
+tipo = "DRAM"
+Case 3
+tipo = "DRAM S?ncrona"
+Case 4
+tipo = "Cache DRAM"
+Case 5
+tipo = "EDO"
+Case 6
+tipo = "EDRAM"
+Case 7
+tipo = "VRAM"
+Case 8
+tipo = "SRAM"
+Case 9
+tipo = "RAM"
+Case 10
+tipo = "ROM"
+Case 11
+tipo = "Flash"
+Case 12
+tipo = "EEPROM"
+Case 13
+tipo = "FEPROM"
+Case 14
+tipo = "EPROM"
+Case 15
+tipo = "CDRAM"
+Case 16
+tipo = "3DRAM"
+Case 17
+tipo = "SDRAM"
+Case 18
+tipo = "SGRAM"
+Case 19
+tipo = "RDRAM"
+Case 20
+tipo = "DDR"
+Case 21
+tipo = "DDR2"
+Case 22
+tipo = "DDR2 FB - DIMM"
+Case 24
+tipo = "DDR3"
+Case 25
+tipo = "FBD2"
+End Select
+
+
+memInfo(0 + i).Text = .DeviceLocator
+memInfo(1 + i).Text = tipo
+memInfo(2 + i).Text = .Capacity / 1048576 & " MBytes"
+memInfo(3 + i).Text = .speed & " MHz"
+
+i = i + 4
+End With
+Next
+
+End Sub
+
+Sub CarregaMB()
+On Error Resume Next
+
+Dim WMI
+Dim wmiWin32Objects
+Dim wmiWin32Object
+Dim ComputerName As String
+
+Set WMI = GetObject("WinMgmts://./root/cimv2")
+Set wmiWin32Objects = WMI.ExecQuery("SELECT * FROM Win32_BaseBoard")
+
+For Each wmiWin32Object In wmiWin32Objects
+With wmiWin32Object
+
+MBInfo(0).Text = .Product
+MBInfo(1).Text = .Version
+MBInfo(2).Text = .manufacturer
+
+End With
+Next
+
+End Sub
+
+Sub CarregaBIOS()
+On Error Resume Next
+
+Dim WMI
+Dim wmiWin32Objects
+Dim wmiWin32Object
+Dim ComputerName As String
+
+Set WMI = GetObject("WinMgmts://./root/cimv2")
+Set wmiWin32Objects = WMI.ExecQuery("SELECT * FROM Win32_BIOS")
+
+For Each wmiWin32Object In wmiWin32Objects
+With wmiWin32Object
+
+BIOSInfo(0).Text = .SMBIOSBIOSVersion
+BIOSInfo(1).Text = .manufacturer
+BIOSInfo(2).Text = Mid(.ReleaseDate, 7, 2) & "/" & Mid(.ReleaseDate, 5, 2) & "/" & Mid(.ReleaseDate, 1, 4)
+
+End With
+Next
+
+End Sub
+
+Sub CarregaVid()
+On Error Resume Next
+
+Dim WMI
+Dim wmiWin32Objects
+Dim wmiWin32Object
+Dim ComputerName As String
+Dim datai As String
+Dim ram As Integer
+
+Set WMI = GetObject("WinMgmts://./root/cimv2")
+Set wmiWin32Objects = WMI.ExecQuery("SELECT * FROM Win32_VideoController")
+
+For Each wmiWin32Object In wmiWin32Objects
+With wmiWin32Object
+
+VidInfo(0).Text = .Name
+VidInfo(1).Text = .AdapterCompatibility '(manufacturer)
+VidInfo(2).Text = .DriverVersion
+datai = Mid(.DriverDate, 7, 2) & "/" & Mid(.DriverDate, 5, 2) & "/" & Mid(.DriverDate, 1, 4)
+VidInfo(3).Text = datai
+If .AdapterRAM / 1048576 < 0 Then _
+ram = .AdapterRAM / 1048576 * -1 Else _
+ram = .AdapterRAM / 1048576 * 1
+
+VidInfo(4).Text = ram & " MBytes"
+
+End With
+
+GoTo fim
+Next
+fim:
+End Sub
+
+Sub CarregaSO()
+On Error Resume Next
+
+Dim WMI
+Dim wmiWin32Objects
+Dim wmiWin32Object
+Dim ComputerName As String
+
+Set WMI = GetObject("WinMgmts://./root/cimv2")
+Set wmiWin32Objects = WMI.ExecQuery("SELECT * FROM Win32_OperatingSystem")
+
+For Each wmiWin32Object In wmiWin32Objects
+With wmiWin32Object
+
+SOInfo(0).Text = .Caption
+SOInfo(1).Text = .Version
+SOInfo(2).Text = .OSArchitecture '32/64bit
+SOInfo(3).Text = Mid(.InstallDate, 7, 2) & "/" & Mid(.InstallDate, 5, 2) & "/" & Mid(.InstallDate, 1, 4)
+
+End With
+Next
+
+End Sub
+
+
+
+Private Sub RefreshTimer_Timer()
+On Error Resume Next
+
+Dim WMI
+Dim wmiWin32Objects
+Dim wmiWin32Object
+Dim ComputerName As String
+
+'Processador
+Set WMI = GetObject("WinMgmts://./root/cimv2")
+Set wmiWin32Objects = WMI.ExecQuery("SELECT CurrentClockSpeed FROM Win32_Processor", , 48)
+
+For Each wmiWin32Object In wmiWin32Objects
+With wmiWin32Object
+
+ProcInfo(6).Text = .CurrentClockSpeed & " MHz"
+
+End With
+Next
+
+'MP
+Set WMI = GetObject("WinMgmts://./root/cimv2")
+Set wmiWin32Objects = WMI.ExecQuery("SELECT AvailableMBytes FROM Win32_PerfFormattedData_PerfOS_Memory", , 48)
+
+For Each wmiWin32Object In wmiWin32Objects
+With wmiWin32Object
+
+memInfoGeral(2).Text = .AvailableMBytes & " MBytes"
+memInfoGeral(1).Text = (MemTotal - .AvailableMBytes) & " MBytes"
+
+End With
+Next
+
+
+End Sub
+
+Private Sub StartupTimer_Timer()
+    Dim pStep As Integer
+    
+    step = step + 1
+    pStep = 8
+    
+    Select Case step
+    Case 1
+    LoadingInfo.Caption = "Carregando dados do processador"
+    Loading.Value = step / pStep * 100
+    
+    Case 2
+    CarregaProcessador
+    LoadingInfo.Caption = "Carregando dados da mem?ria cache"
+    Loading.Value = step / pStep * 100
+    
+    Case 3
+    CarregaCache
+    LoadingInfo.Caption = "Carregando dados da mem?ria principal"
+    Loading.Value = step / pStep * 100
+    
+    Case 4
+    CarregaMP
+    LoadingInfo.Caption = "Carregando dados da Placa m?e"
+    Loading.Value = step / pStep * 100
+    
+    Case 5
+    CarregaMB
+    LoadingInfo.Caption = "Carregando dados do BIOS"
+    Loading.Value = step / pStep * 100
+    
+    Case 6
+    CarregaBIOS
+    LoadingInfo.Caption = "Carregando dados da Placa Gr?fica"
+    Loading.Value = step / pStep * 100
+    
+    Case 7
+    CarregaVid
+    LoadingInfo.Caption = "Carregando dados do Sistema Operacional"
+    Loading.Value = step / pStep * 100
+    
+    Case 8
+    CarregaSO
+    LoadingInfo.Caption = "Inicializando..."
+    Loading.Value = step / pStep * 100
+    
+    Case Else
+    limpa
+    RefreshTimer.Enabled = True
+    StartupTimer.Enabled = False
+    ContainerInit.Visible = False
+    
+    End Select
+End Sub
+
+Sub limpa()
+
+'Aba processador
+Dim Campos As Integer
+Dim i As Integer
+
+Campos = ProcInfo.Count
+For i = 0 To Campos - 1 Step 1
+    If (ProcInfo(i).Text = "" And (i <> 6 And i <> 16)) Then ProcInfo(i).BackColor = &H8000000F
+Next i
+
+
+Campos = SOInfo.Count
+For i = 0 To Campos - 1 Step 1
+    If SOInfo(i).Text = "" Then SOInfo(i).BackColor = &H8000000F
+Next i
+
+Campos = memInfo.Count
+For i = 0 To Campos - 1 Step 1
+    If memInfo(i).Text = "" Then memInfo(i).BackColor = &H8000000F
+Next i
+
+Campos = MBInfo.Count
+For i = 0 To Campos - 1 Step 1
+    If MBInfo(i).Text = "" Then MBInfo(i).BackColor = &H8000000F
+Next i
+
+Campos = BIOSInfo.Count
+For i = 0 To Campos - 1 Step 1
+    If BIOSInfo(i).Text = "" Then BIOSInfo(i).BackColor = &H8000000F
+Next i
+
+Campos = VidInfo.Count
+For i = 0 To Campos - 1 Step 1
+    If VidInfo(i).Text = "" Then VidInfo(i).BackColor = &H8000000F
+Next i
+
+Campos = SOInfo.Count
+For i = 0 To Campos - 1 Step 1
+    If SOInfo(i).Text = "" Then SOInfo(i).BackColor = &H8000000F
+Next i
+End Sub
+
+
+Private Sub TabStrip1_Click()
+    container(SelectedTab - 1).Visible = False
+    SelectedTab = TabStrip1.SelectedItem.Index
+    container(SelectedTab - 1).Visible = True
+End Sub
